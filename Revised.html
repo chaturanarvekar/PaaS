@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Result Portal</title>
+</head>
+<body>
+
+<h2>Student Result Portal</h2>
+
+<input type="text" id="roll" placeholder="Enter Roll Number">
+<button onclick="getResult()">Get Result</button>
+
+<pre id="output"></pre>
+
+<script>
+function getResult() {
+    let roll = document.getElementById("roll").value;
+
+    fetch("http://127.0.0.1:5000/result", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ roll_no: roll })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        document.getElementById("output").textContent =
+`Student Result
+-------------------------
+Roll No : ${data.roll_no}
+Name    : ${data.name}
+
+Marks:
+Maths        : ${data.marks.Maths}
+Physics     : ${data.marks.Physics}
+Electronics : ${data.marks.Electronics}
+
+Total  : ${data.total}
+Result : ${data.result}`;
+    });
+}
+</script>
+
+</body>
+</html>
