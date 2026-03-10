@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Simple App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f2f2f2;
+            padding: 50px;
+        }
+        h1 {
+            color: #333;
+        }
+        input {
+            padding: 10px;
+            width: 200px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+        #output {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Static App</h1>
+    <p>Enter your name and click submit:</p>
+    <input type="text" id="name" placeholder="Your Name">
+    <button onclick="sayHello()">Submit</button>
+
+    <div id="output"></div>
+
+    <script>
+        function sayHello() {
+            const name = document.getElementById('name').value;
+            const outputDiv = document.getElementById('output');
+            if(name.trim() === "") {
+                outputDiv.textContent = "Please enter a name!";
+            } else {
+                outputDiv.textContent = `Hello, ${name}! Welcome to your simple app.`;
+            }
+        }
+    </script>
+</body>
+</html>
