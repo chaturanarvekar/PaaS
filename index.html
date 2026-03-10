@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Result Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #F0EDE6;
+      --surface: #FFFFFF;
+      --ink: #1A1A1A;
+      --muted: #888880;
+      --accent: #D4500A;
+      --accent2: #2D6A4F;
+      --fail: #C0392B;
+      --pass: #27AE60;
+      --border: #D8D4CC;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      padding: 2rem 1rem 4rem;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: -1;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 39px, var(--border) 39px, var(--border) 40px),
+        repeating-linear-gradient(90deg, transparent, transparent 39px, var(--border) 39px, var(--border) 40px);
+      opacity: 0.4;
+    }
+
+    .page-wrap { max-width: 780px; margin: 0 auto; }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      animation: fadeDown 0.6s ease both;
+    }
+    .header-badge {
+      display: inline-block;
+      background: var(--ink); color: var(--bg);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem; letter-spacing: 3px;
+      padding: 0.4rem 1.2rem; margin-bottom: 1.2rem;
+      text-transform: uppercase;
+    }
+    header h1 {
+      font-size: clamp(2.5rem, 7vw, 4.5rem);
+      font-weight: 800; line-height: 1;
+      letter-spacing: -1px; margin-bottom: 0.5rem;
+    }
+    header h1 span { color: var(--accent); }
+    header p {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.82rem; color: var(--muted); letter-spacing: 1px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 2px solid var(--ink);
+      box-shadow: 6px 6px 0 var(--ink);
+      padding: 2.5rem; margin-bottom: 1.5rem;
+      animation: fadeUp 0.5s ease both;
+    }
+    .card-title {
+      font-size: 0.65rem;
+      font-family: 'IBM Plex Mono', monospace;
+      letter-spacing: 4px; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 1.5rem;
+      padding-bottom: 0.8rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .card-title::before {
+      content: ''; display: inline-block;
+      width: 8px; height: 8px;
+      background: var(--accent); border-radius: 50%;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.2rem; }
+
+    @media (max-width: 580px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .card { padding: 1.5rem; }
+    }
+
+    .field { display: flex; flex-direction: column; gap: 0.4rem; }
+    .field label {
+      font-size: 0.72rem;
+      font-family: 'IBM Plex Mono', monospace;
+      letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+    }
+    .field input, .field select {
+      background: var(--bg); border: 1.5px solid var(--border);
+      color: var(--ink); font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 600;
+      padding: 0.7rem 0.9rem; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+    }
+    .field input:focus, .field select:focus {
+      border-color: var(--accent);
+      box-shadow: 3px 3px 0 var(--accent);
+    }
+    .field input::placeholder { color: #bbb; font-weight: 400; }
+
+    .subject-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 0.8rem; align-items: end;
+      padding: 0.8rem 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    .subject-row:last-child { border-bottom: none; }
+    .subject-name { font-weight: 700; font-size: 0.95rem; padding-top: 0.3rem; }
+    .subject-label {
+      font-size: 0.62rem; font-family: 'IBM Plex Mono', monospace;
+      color: var(--muted); letter-spacing: 2px;
+      text-transform: uppercase; margin-bottom: 0.3rem;
+    }
+
+    .marks-input {
+      width: 100%; background: var(--bg);
+      border: 1.5px solid var(--border);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 1rem; font-weight: 600;
+      padding: 0.6rem 0.8rem; outline: none; color: var(--ink);
+      transition: border-color 0.2s;
+    }
+    .marks-input:focus { border-color: var(--accent); }
+
+    .attendance-wrap { display: flex; flex-direction: column; gap: 0.5rem; }
+    .attendance-display {
+      font-size: 2.5rem; font-weight: 800;
+      color: var(--ink); font-family: 'IBM Plex Mono', monospace; line-height: 1;
+    }
+    .attendance-display span { font-size: 1rem; color: var(--muted); }
+    input[type=range] {
+      width: 100%; height: 6px; -webkit-appearance: none;
+      background: var(--border); outline: none; cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 20px; height: 20px;
+      background: var(--ink); border-radius: 50%;
+      border: 3px solid var(--bg); box-shadow: 0 0 0 2px var(--ink);
+    }
+
+    .submit-btn {
+      width: 100%; background: var(--ink); color: var(--bg);
+      border: 2px solid var(--ink);
+      font-family: 'Syne', sans-serif; font-size: 1.1rem;
+      font-weight: 800; letter-spacing: 3px; text-transform: uppercase;
+      padding: 1.1rem; cursor: pointer;
+      box-shadow: 5px 5px 0 var(--accent);
+      transition: transform 0.15s, box-shadow 0.15s; margin-top: 0.5rem;
+    }
+    .submit-btn:hover { transform: translate(-3px,-3px); box-shadow: 8px 8px 0 var(--accent); }
+    .submit-btn:active { transform: translate(1px,1px); box-shadow: 3px 3px 0 var(--accent); }
+
+    #resultCard { display: none; animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+    #resultCard.show { display: block; }
+
+    .result-header { text-align: center; padding: 2rem 1rem; margin-bottom: 1.5rem; }
+    .result-verdict {
+      font-size: clamp(3rem, 10vw, 6rem);
+      font-weight: 800; letter-spacing: -2px; line-height: 1;
+    }
+    .result-verdict.pass { color: var(--pass); }
+    .result-verdict.fail { color: var(--fail); }
+    .result-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.8rem; color: var(--muted);
+      letter-spacing: 1px; margin-top: 0.5rem;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem; margin-bottom: 1.5rem;
+    }
+    .stat-box { border: 1.5px solid var(--border); padding: 1rem; text-align: center; }
+    .stat-num {
+      font-size: 2rem; font-weight: 800;
+      font-family: 'IBM Plex Mono', monospace; line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.62rem; font-family: 'IBM Plex Mono', monospace;
+      color: var(--muted); letter-spacing: 2px;
+      text-transform: uppercase; margin-top: 0.3rem;
+    }
+
+    .subject-result-table { width: 100%; border-collapse: collapse; }
+    .subject-result-table th {
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem;
+      letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+      text-align: left; padding: 0.5rem 0.8rem;
+      border-bottom: 2px solid var(--ink);
+    }
+    .subject-result-table td {
+      padding: 0.7rem 0.8rem; border-bottom: 1px solid var(--border); font-size: 0.9rem;
+    }
+    .subject-result-table tr:last-child td { border-bottom: none; }
+
+    .badge {
+      display: inline-block; padding: 0.2rem 0.6rem;
+      font-size: 0.7rem; font-family: 'IBM Plex Mono', monospace;
+      font-weight: 500; letter-spacing: 1px;
+    }
+    .badge.pass { background: rgba(39,174,96,0.12); color: var(--pass); }
+    .badge.fail { background: rgba(192,57,43,0.12); color: var(--fail); }
+
+    .student-info-bar {
+      background: var(--ink); color: var(--bg);
+      padding: 1rem 1.5rem;
+      display: flex; flex-wrap: wrap; gap: 1.5rem;
+      margin-bottom: 1.5rem;
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem;
+    }
+    .student-info-bar span { opacity: 0.5; }
+
+    .reset-btn {
+      width: 100%; background: transparent; color: var(--ink);
+      border: 2px solid var(--ink);
+      font-family: 'Syne', sans-serif; font-size: 0.9rem;
+      font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      padding: 0.9rem; cursor: pointer;
+      transition: background 0.2s, color 0.2s; margin-top: 1rem;
+    }
+    .reset-btn:hover { background: var(--ink); color: var(--bg); }
+
+    @keyframes fadeDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes popIn { from { opacity:0; transform:scale(0.9); } to { opacity:1; transform:scale(1); } }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <header>
+    <div class="header-badge">Academic Year 2024–25</div>
+    <h1>Student <span>Result</span> Portal</h1>
+    <p>// Enter details below to calculate result</p>
+  </header>
+
+  <div id="formSection">
+
+    <!-- Personal Info -->
+    <div class="card">
+      <div class="card-title">Personal Information</div>
+      <div class="grid-2" style="margin-bottom:1.2rem">
+        <div class="field">
+          <label>Full Name</label>
+          <input type="text" id="studentName" placeholder="e.g. Rahul Sharma"/>
+        </div>
+        <div class="field">
+          <label>Roll Number</label>
+          <input type="text" id="rollNo" placeholder="e.g. 2024001"/>
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="field">
+          <label>Class / Standard</label>
+          <select id="studentClass">
+            <option value="">Select Class</option>
+            <option>Class 9</option><option>Class 10</option>
+            <option>Class 11</option><option>Class 12</option>
+            <option>FY / SY / TY</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Division</label>
+          <select id="division">
+            <option value="">Select</option>
+            <option>A</option><option>B</option><option>C</option><option>D</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Exam Type</label>
+          <select id="examType">
+            <option>Unit Test</option>
+            <option>Mid Term</option>
+            <option>Final Exam</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact -->
+    <div class="card">
+      <div class="card-title">Contact Details</div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Email Address</label>
+          <input type="email" id="email" placeholder="student@email.com"/>
+        </div>
+        <div class="field">
+          <label>Phone Number</label>
+          <input type="tel" id="phone" placeholder="+91 XXXXX XXXXX"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Marks -->
+    <div class="card">
+      <div class="card-title">Subject Marks</div>
+      <div class="subject-row" style="padding-top:0">
+        <div></div>
+        <div><div class="subject-label">Marks Obtained</div></div>
+        <div><div class="subject-label">Out of (Max)</div></div>
+      </div>
+      <div id="subjectsContainer"></div>
+      <p style="font-size:0.72rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);margin-top:1rem;">
+        * Passing marks = 35% of max marks per subject
+      </p>
+    </div>
+
+    <!-- Attendance -->
+    <div class="card">
+      <div class="card-title">Attendance</div>
+      <div class="attendance-wrap">
+        <div class="attendance-display" id="attDisplay">75<span>%</span></div>
+        <input type="range" id="attendance" min="0" max="100" value="75"
+          oninput="updateAtt(this.value)"/>
+        <p style="font-size:0.72rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);">
+          * Minimum 75% required &nbsp;→&nbsp;
+          <strong id="attStatus" style="color:var(--pass)">Sufficient ✓</strong>
+        </p>
+      </div>
+    </div>
+
+    <button class="submit-btn" onclick="calculateResult()">Calculate Result →</button>
+  </div>
+
+  <!-- RESULT -->
+  <div class="card" id="resultCard">
+    <div class="card-title">Result Summary</div>
+    <div class="student-info-bar" id="studentInfoBar"></div>
+    <div class="result-header">
+      <div class="result-verdict" id="verdictText">PASS</div>
+      <div class="result-sub" id="verdictSub"></div>
+    </div>
+    <div class="result-grid" id="resultStats"></div>
+    <table class="subject-result-table">
+      <thead>
+        <tr>
+          <th>Subject</th><th>Marks</th><th>Max</th><th>%</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="subjectResultBody"></tbody>
+    </table>
+    <button class="reset-btn" onclick="resetForm()">← Enter New Student</button>
+  </div>
+
+</div>
+
+<script>
+  const subjects = ["Mathematics","Science","English","Social Studies","Hindi / 2nd Language"];
+
+  // Build subject rows
+  const cont = document.getElementById('subjectsContainer');
+  subjects.forEach((sub, i) => {
+    cont.innerHTML += `
+      <div class="subject-row">
+        <div class="subject-name">${sub}</div>
+        <div><input class="marks-input" type="number" id="marks_${i}" placeholder="0" min="0" max="200"/></div>
+        <div><input class="marks-input" type="number" id="max_${i}" placeholder="100" value="100" min="1" max="200"/></div>
+      </div>`;
+  });
+
+  function updateAtt(v) {
+    document.getElementById('attDisplay').innerHTML = v + '<span>%</span>';
+    const el = document.getElementById('attStatus');
+    if (v >= 75) { el.textContent = 'Sufficient ✓'; el.style.color = 'var(--pass)'; }
+    else         { el.textContent = 'Insufficient ✗'; el.style.color = 'var(--fail)'; }
+  }
+
+  function calculateResult() {
+    const name = document.getElementById('studentName').value.trim();
+    const roll = document.getElementById('rollNo').value.trim();
+    const cls  = document.getElementById('studentClass').value;
+    const div  = document.getElementById('division').value;
+    const exam = document.getElementById('examType').value;
+    const att  = parseInt(document.getElementById('attendance').value);
+
+    if (!name || !roll || !cls) { alert('Please fill Name, Roll Number and Class!'); return; }
+
+    let totalMarks = 0, totalMax = 0, failedSubs = 0;
+    const subData = [];
+
+    subjects.forEach((sub, i) => {
+      const m  = parseFloat(document.getElementById('marks_' + i).value) || 0;
+      const mx = parseFloat(document.getElementById('max_' + i).value) || 100;
+      const pct = ((m / mx) * 100).toFixed(1);
+      const passed = m >= (mx * 0.35);
+      if (!passed) failedSubs++;
+      totalMarks += m; totalMax += mx;
+      subData.push({ name: sub, marks: m, max: mx, pct, passed });
+    });
+
+    const overallPct = ((totalMarks / totalMax) * 100).toFixed(1);
+    const attPass = att >= 75;
+    const acadPass = failedSubs === 0 && parseFloat(overallPct) >= 35;
+    const finalPass = acadPass && attPass;
+
+    let grade = 'F';
+    if      (overallPct >= 90) grade = 'A+';
+    else if (overallPct >= 75) grade = 'A';
+    else if (overallPct >= 60) grade = 'B';
+    else if (overallPct >= 50) grade = 'C';
+    else if (overallPct >= 35) grade = 'D';
+
+    // Info bar
+    document.getElementById('studentInfoBar').innerHTML =
+      `<div><span>Name // </span>${name}</div>
+       <div><span>Roll // </span>${roll}</div>
+       <div><span>Class // </span>${cls} ${div}</div>
+       <div><span>Exam // </span>${exam}</div>`;
+
+    // Verdict
+    const vt = document.getElementById('verdictText');
+    vt.textContent = finalPass ? 'PASS' : 'FAIL';
+    vt.className = 'result-verdict ' + (finalPass ? 'pass' : 'fail');
+
+    let reason = finalPass ? '🎉 Congratulations! All requirements cleared.' : '';
+    if (failedSubs > 0) reason += `Failed in ${failedSubs} subject(s). `;
+    if (!attPass) reason += 'Attendance below 75%.';
+    document.getElementById('verdictSub').textContent = reason;
+
+    // Stats
+    document.getElementById('resultStats').innerHTML = `
+      <div class="stat-box">
+        <div class="stat-num">${overallPct}%</div>
+        <div class="stat-label">Percentage</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">${totalMarks}/${totalMax}</div>
+        <div class="stat-label">Total Marks</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" style="color:${finalPass?'var(--pass)':'var(--fail)'}">${grade}</div>
+        <div class="stat-label">Grade</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num" style="color:${attPass?'var(--pass)':'var(--fail)'}">${att}%</div>
+        <div class="stat-label">Attendance</div>
+      </div>`;
+
+    // Subject rows
+    document.getElementById('subjectResultBody').innerHTML = subData.map(s => `
+      <tr>
+        <td><strong>${s.name}</strong></td>
+        <td style="font-family:'IBM Plex Mono',monospace">${s.marks}</td>
+        <td style="font-family:'IBM Plex Mono',monospace;color:var(--muted)">${s.max}</td>
+        <td style="font-family:'IBM Plex Mono',monospace">${s.pct}%</td>
+        <td><span class="badge ${s.passed?'pass':'fail'}">${s.passed?'PASS':'FAIL'}</span></td>
+      </tr>`).join('');
+
+    document.getElementById('formSection').style.display = 'none';
+    const rc = document.getElementById('resultCard');
+    rc.classList.add('show');
+    rc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function resetForm() {
+    document.getElementById('formSection').style.display = 'block';
+    document.getElementById('resultCard').classList.remove('show');
+    ['studentName','rollNo','email','phone'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('studentClass').value = '';
+    document.getElementById('division').value = '';
+    document.getElementById('attendance').value = 75;
+    updateAtt(75);
+    subjects.forEach((_, i) => {
+      document.getElementById('marks_' + i).value = '';
+      document.getElementById('max_' + i).value = 100;
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
